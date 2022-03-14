@@ -1,3 +1,5 @@
+import winsound
+
 import PIL.Image
 from PIL import Image
 import cv2
@@ -40,7 +42,7 @@ import matplotlib.pyplot as plt
 # from pytorch_pretrained_vit import ViT
 # model = ViT('B_16_imagenet1k', pretrained=True)
 from torch.utils.data import DataLoader, Dataset
-
+import sounddevice as sd
 SEED = 42
 DATA_PATH = "C:\\workspace\\data\\audio\\birdclef-2022"
 AUDIO_PATH = 'C:\\workspace\\data\\audio\\birdclef-2022\\train_audio'
@@ -103,6 +105,9 @@ def read_sound(path):
     y = np.mean(y, 1)
     return y
 
+def play_sound(sound_narray):
+    sd.play(sound_narray, blocking=True)
+
 def sound_to_image(sound):
     image = compute_melspec(sound, AudioParams)
     image = mono_to_color(image)
@@ -117,10 +122,15 @@ train = pd.read_csv(DATA_PATH + '/train_metadata.csv')
 train["file_path"] = AUDIO_PATH + '/' + train['filename']
 
 for path, label in zip(train["file_path"], train['primary_label']):
+    print(f"label:{label}, path:{path}")
     saved_path = f'./sound_img/{label}/'
     if os.path.exists(saved_path) == False:
         os.mkdir(saved_path)
-    sound_img = Image.fromarray(sound_to_image(read_sound(path)))
+    numpy_sound = read_sound(path)
+    print(numpy_sound.shape)
+    # play_sound(numpy_sound)
+
+    sound_img = Image.fromarray(sound_to_image(numpy_sound))
     sound_img.save(saved_path+path.split('/')[-1].split('.')[0]+'.jpg')
 #
 # train_data = read_sound_list(train["file_path"])
